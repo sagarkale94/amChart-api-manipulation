@@ -14,7 +14,8 @@ am4core.useTheme(am4themes_animated);
 export class AppComponent {
 
   private chart: am4charts.XYChart;
-  private pieChart: am4charts.PieChart;
+  // private pieChart: am4charts.PieChart;
+  private lineChart: am4charts.XYChart;
 
   constructor(
     private zone: NgZone,
@@ -60,8 +61,10 @@ export class AppComponent {
       }
     }
 
-    console.log('dataForStackChart  :  ', dataForStackChart);
+    console.log('dataForStackChart', dataForStackChart);
+
     this.chart.data = dataForStackChart;
+    this.lineChart.data = dataForStackChart;
 
   }
 
@@ -70,7 +73,7 @@ export class AppComponent {
 
       let chart = am4core.create("chartdiv", am4charts.XYChart);
 
-      chart.data = [
+    /*   chart.data = [
         {
           "CIPCircuitName": "TestCircuit1",
           "Caustic": 36,
@@ -89,7 +92,7 @@ export class AppComponent {
           "Acid": 45,
           "Caustic Acid": 29
         }
-      ];
+      ]; */
 
       // Create axes
       var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
@@ -124,8 +127,8 @@ export class AppComponent {
       var series3 = chart.series.push(new am4charts.ColumnSeries());
       series3.dataFields.valueY = "Caustic Acid";
       // series3.dataFields.valueYShow = "total";
-      series3.fill = am4core.color('#eee');
-      series3.stroke = am4core.color('#eee');
+      // series3.fill = am4core.color('#189b1b');
+      // series3.stroke = am4core.color('#189b1b');
       series3.dataFields.categoryX = "CIPCircuitName";
       series3.name = "Caustic Acid";
       series3.tooltipText = "{name}: [bold]{valueY}[/]";
@@ -135,39 +138,90 @@ export class AppComponent {
       chart.cursor = new am4charts.XYCursor();
       this.chart = chart;
 
-      // Create chart instance
-      let pieChart = am4core.create("chartdiv1", am4charts.PieChart);
-      pieChart.data = [
-        {
-          "CIPProgram": "Caustic",
-          "Count": 36
-        },
-        {
-          "CIPProgram": "Acid",
-          "Count": 5
-        },
-        {
-          "CIPProgram": "Caustic Acid",
-          "Count": 25
+
+      //----------------------Line Chart--------------------------//
+
+      let lineChart = am4core.create("chartdiv1", am4charts.XYChart);
+
+      // Create axes
+      var categoryAxis = lineChart.xAxes.push(new am4charts.CategoryAxis());
+      categoryAxis.dataFields.category = "CIPCircuitName";
+      categoryAxis.title.text = "CIP Circuit Name";
+      categoryAxis.renderer.grid.template.location = 0;
+      categoryAxis.renderer.minGridDistance = 20;
+
+      // Create series
+      function createAxisAndSeries(field, name, opposite, bullet) {
+        let valueAxis = lineChart.yAxes.push(new am4charts.ValueAxis());
+        /*  if (lineChart.yAxes.indexOf(valueAxis) != 0) {
+           valueAxis.syncWithAxis = lineChart.yAxes.getIndex(0) as any;
+         } */
+
+        valueAxis.title.text = "CIP Counts";
+        valueAxis.calculateTotals = true;
+        valueAxis.min = 0;
+
+        let series = lineChart.series.push(new am4charts.LineSeries());
+        series.dataFields.valueY = field;
+        series.dataFields.categoryX = "CIPCircuitName";
+        series.strokeWidth = 2;
+        series.yAxis = valueAxis;
+        series.name = name;
+        series.tooltipText = "{name}: [bold]{valueY}[/]";
+        series.tensionX = 0.8;
+        series.showOnInit = true;
+
+        let interfaceColors = new am4core.InterfaceColorSet();
+
+        switch (bullet) {
+          case "triangle":
+            let bullet1 = series.bullets.push(new am4charts.Bullet());
+            bullet1.width = 12;
+            bullet1.height = 12;
+            bullet1.horizontalCenter = "middle";
+            bullet1.verticalCenter = "middle";
+
+            let triangle = bullet1.createChild(am4core.Triangle);
+            triangle.stroke = interfaceColors.getFor("background");
+            triangle.strokeWidth = 2;
+            triangle.direction = "top";
+            triangle.width = 12;
+            triangle.height = 12;
+            break;
+          case "rectangle":
+            let bullet2 = series.bullets.push(new am4charts.Bullet());
+            bullet2.width = 10;
+            bullet2.height = 10;
+            bullet2.horizontalCenter = "middle";
+            bullet2.verticalCenter = "middle";
+
+            let rectangle = bullet2.createChild(am4core.Rectangle);
+            rectangle.stroke = interfaceColors.getFor("background");
+            rectangle.strokeWidth = 2;
+            rectangle.width = 10;
+            rectangle.height = 10;
+            break;
+          default:
+            let bullet3 = series.bullets.push(new am4charts.CircleBullet());
+            bullet3.circle.stroke = interfaceColors.getFor("background");
+            bullet3.circle.strokeWidth = 2;
+            break;
         }
-      ];
 
-      pieChart.radius = 135;
+        valueAxis.renderer.line.strokeOpacity = 1;
+        valueAxis.renderer.line.strokeWidth = 2;
+        valueAxis.renderer.line.stroke = series.stroke;
+        valueAxis.renderer.labels.template.fill = series.stroke;
+        valueAxis.renderer.opposite = opposite;
+      }
 
-      let title = pieChart.titles.create();
-      title.text = "TestCircuit1";
+      createAxisAndSeries("Caustic", "Caustic", false, "circle");
+      createAxisAndSeries("Acid", "Acid", true, "triangle");
+      createAxisAndSeries("Caustic Acid", "Caustic Acid", true, "rectangle");
 
-      let pieSeries = pieChart.series.push(new am4charts.PieSeries());
-      pieSeries.dataFields.value = "Count";
-      pieSeries.dataFields.category = "CIPProgram";
-      pieSeries.colors.list = ["#388E3C", "#FBC02D", "#0288d1"].map(function (color) {
-        return am4core.color(color);
-      });
+      lineChart.cursor = new am4charts.XYCursor();
 
-      pieSeries.labels.template.text = "{category}: {value.value}";
-      pieSeries.slices.template.tooltipText = "{category}: {value.value}";
-
-      this.pieChart = pieChart;
+      this.lineChart = lineChart;
 
     });
   }
@@ -176,7 +230,8 @@ export class AppComponent {
     this.zone.runOutsideAngular(() => {
       if (this.chart) {
         this.chart.dispose();
-        this.pieChart.dispose();
+        // this.pieChart.dispose();
+        this.lineChart.dispose();
       }
     });
   }
