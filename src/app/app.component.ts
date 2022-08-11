@@ -13,6 +13,8 @@ am4core.useTheme(am4themes_animated);
 })
 export class AppComponent {
 
+  //Feature 1
+
   /* chart.data = [
       {
         "CIPCircuitName": "TestCircuit1",
