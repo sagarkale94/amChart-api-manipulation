@@ -14,6 +14,7 @@ am4core.useTheme(am4themes_animated);
 export class AppComponent {
 
   //Feature 1
+  //Feature 2
 
   /* chart.data = [
       {
